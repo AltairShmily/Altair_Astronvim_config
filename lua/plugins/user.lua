@@ -1,4 +1,4 @@
-if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
+-- if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
 
 -- You can also add or configure plugins by creating files in this `plugins/` folder
 -- Here are some examples:
@@ -8,14 +8,101 @@ return {
 
   -- == Examples of Adding Plugins ==
 
-  "andweeb/presence.nvim",
-  {
-    "ray-x/lsp_signature.nvim",
-    event = "BufRead",
-    config = function() require("lsp_signature").setup() end,
-  },
+  -- "andweeb/presence.nvim",
+  -- {
+  --   "ray-x/lsp_signature.nvim",
+  --   event = "BufRead",
+  --   config = function() require("lsp_signature").setup() end,
+  -- },
 
   -- == Examples of Overriding Plugins ==
+  -- custom herline options
+  {
+    "rebelot/heirline.nvim",
+    opts = function(_, opts)
+      local status = require "astroui.status"
+      local WorkDir = {
+        init = function(self)
+          self.icon = " "
+          local cwd = vim.fn.getcwd(0)
+          self.cwd = vim.fn.fnamemodify(cwd, ":~")
+        end,
+        hl = { fg = "purple", bold = true },
+
+        flexible = 1,
+
+        {
+          -- evaluates to the full-lenth path
+          provider = function(self)
+            local trail = self.cwd:sub(-1) == "/" and "" or "/"
+            return self.icon .. self.cwd .. trail .. " "
+          end,
+        },
+        {
+          -- evaluates to the shortened path
+          provider = function(self)
+            local cwd = vim.fn.pathshorten(self.cwd)
+            local trail = self.cwd:sub(-1) == "/" and "" or "/"
+            return self.icon .. cwd .. trail .. " "
+          end,
+        },
+        {
+          -- evaluates to "", hiding the component
+          provider = "",
+        },
+      }
+      opts.statusline = { -- statusline
+        hl = { fg = "fg", bg = "bg" },
+        status.component.mode { mode_text = { padding = { left = 1, right = 1 } }, hl = { bold = true } }, -- add the mode text
+        status.component.git_branch(),
+        status.component.file_info(),
+        status.component.git_diff(),
+        status.component.diagnostics(),
+        status.component.builder(WorkDir),
+        status.component.fill(),
+        status.component.cmd_info(),
+        status.component.fill(),
+        status.component.lsp(),
+        status.component.virtual_env(),
+        status.component.nav(),
+      }
+      opts.winbar = false
+    end,
+  },
+
+  -- custom noice.nvim
+  {
+    "folke/noice.nvim",
+    config = function()
+      require("noice").setup {
+        presets = {
+          command_palette = false, -- position the cmdline and popumenu together
+        },
+      }
+    end,
+  },
+
+  -- custom neo-tree
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    filesystem = {
+      filtered_items = {
+        hide_hidden = false, -- 取消neo-tree不显示隐藏文件
+      },
+    },
+  },
+
+  -- custom nvim-notify
+  {
+    "rcarriga/nvim-notify",
+    opts = {
+      stages = "static",
+      render = "compact",
+      max_width = "30",
+      level = 1,
+      timeout = 2000,
+    },
+  },
 
   -- customize alpha options
   {
@@ -23,24 +110,26 @@ return {
     opts = function(_, opts)
       -- customize the dashboard header
       opts.section.header.val = {
-        " █████  ███████ ████████ ██████   ██████",
-        "██   ██ ██         ██    ██   ██ ██    ██",
-        "███████ ███████    ██    ██████  ██    ██",
-        "██   ██      ██    ██    ██   ██ ██    ██",
-        "██   ██ ███████    ██    ██   ██  ██████",
-        " ",
-        "    ███    ██ ██    ██ ██ ███    ███",
-        "    ████   ██ ██    ██ ██ ████  ████",
-        "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
-        "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
-        "    ██   ████   ████   ██ ██      ██",
+        "  █████╗  ██╗     ████████╗ █████╗  ██╗ ██████╗   ",
+        " ██╔══██╗ ██║     ╚══██╔══╝██╔══██╗ ██║ ██╔══██╗  ",
+        " ███████║ ██║        ██║   ███████║ ██║ ██████╔╝  ",
+        " ██╔══██║ ██║        ██║   ██╔══██║ ██║ ██╔══██╗  ",
+        " ██║  ██║ ███████╗   ██║   ██║  ██║ ██║ ██║  ██║  ",
+        " ╚═╝  ╚═╝ ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═╝  ",
+        "                                                  ",
+        "███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗",
+        "████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║",
+        "██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║",
+        "██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+        "██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+        "╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
       }
       return opts
     end,
   },
 
   -- You can disable default plugins as follows:
-  { "max397574/better-escape.nvim", enabled = false },
+  { "max397574/better-escape.nvim", enabled = true },
 
   -- You can also easily customize additional setup of plugins that is outside of the plugin's setup call
   {
